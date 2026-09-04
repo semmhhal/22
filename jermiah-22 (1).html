@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jermiah's 22nd</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#F7F1E8; --cream:#EFE4D2; --latte-l:#D8C3AE; --latte:#B89B83;
+  --mocha:#6B4F43; --espresso:#3A2921; --bloom:#FDF9F3;
+  --serif:"DM Serif Display",Georgia,serif;
+  --sans:"DM Sans",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--ivory);color:var(--espresso);font-family:var(--sans);overflow:hidden;overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--mocha);outline-offset:4px;border-radius:4px}
+
+#stage{position:fixed;inset:0;overflow:hidden}
+#sky{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 8%, var(--bloom) 0%, var(--ivory) 45%, var(--cream) 100%);transition:filter 1.6s ease}
+#grain{position:absolute;inset:0;opacity:.35;pointer-events:none;mix-blend-mode:multiply}
+#confetti{position:absolute;inset:0;pointer-events:none;z-index:5}
+#ground{position:absolute;left:-4%;right:-4%;bottom:0;height:26vh;pointer-events:none;opacity:0;transition:opacity 1.4s ease .3s}
+.scene-on #ground{opacity:1}
+
+#search{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2rem;padding:8vw;transition:opacity .9s ease, transform .9s ease}
+#search h1{font-family:var(--serif);font-weight:400;font-size:clamp(1.7rem,5.2vw,3.1rem);line-height:1.15;margin:0;text-align:center;letter-spacing:-.01em}
+.searchbar{display:flex;align-items:center;gap:.75rem;width:min(30rem,86vw);border-bottom:1px solid var(--latte);padding:.55rem .2rem;transition:border-color .4s ease}
+.searchbar:focus-within{border-color:var(--mocha)}
+.searchbar svg{flex:none;opacity:.55}
+#q{flex:1;border:0;background:none;outline:none;font-family:var(--sans);font-size:1.05rem;color:var(--espresso);padding:.2rem 0}
+#q::placeholder{color:var(--latte)}
+#hint{font-size:.82rem;color:var(--latte);opacity:0;transition:opacity 1s ease;height:1.2em}
+#hint.show{opacity:1}
+#found{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:8vw;text-align:center;pointer-events:none}
+#found p{font-family:var(--serif);font-size:clamp(1.3rem,4vw,2.2rem);margin:0;opacity:0;transform:translateY(10px);color:var(--mocha);transition:opacity 1.1s ease, transform 1.1s ease}
+#found p.show{opacity:1;transform:none}
+.gone{opacity:0!important;transform:translateY(-14px);pointer-events:none!important}
+
+#balloons{position:absolute;inset:0}
+.balloon{position:absolute;left:0;top:0;transform-origin:50% 84%;cursor:pointer;border:0;padding:0;background:none;will-change:transform}
+.balloon svg{display:block;pointer-events:none;overflow:visible}
+.balloon .hit{position:absolute;left:8%;right:8%;top:2%;bottom:26%;border-radius:50%}
+.balloon.popping{animation:pop .34s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes pop{0%{transform:var(--tf) scale(1)}38%{transform:var(--tf) scale(1.22)}100%{transform:var(--tf) scale(.1);opacity:0}}
+.balloon .label{font-family:var(--serif);font-size:15px;fill:var(--ivory)}
+.balloon .label.small{font-size:9.5px;letter-spacing:.06em;font-family:var(--sans);font-weight:500}
+
+#notes{position:absolute;inset:0;pointer-events:none;z-index:4}
+.note{position:absolute;padding:1rem 1.15rem 1.05rem;
+  background:linear-gradient(180deg,#FBF6EE,#F3EADC);
+  border-radius:3px 14px 4px 12px;
+  box-shadow:0 10px 26px -14px rgba(58,41,33,.45), 0 1px 0 rgba(255,255,255,.7) inset;
+  font-size:.95rem;line-height:1.5;color:var(--mocha);
+  opacity:0;transition:opacity .8s cubic-bezier(.2,.8,.3,1), transform .8s cubic-bezier(.2,.8,.3,1), filter 1.4s ease;
+  will-change:transform,opacity}
+.note.in{opacity:1}
+.note.heart{font-family:var(--serif);font-size:1.06rem;line-height:1.42;color:var(--espresso);
+  background:linear-gradient(180deg,#FCF8F1,#F0E5D5);
+  box-shadow:0 14px 34px -16px rgba(107,79,67,.55), 0 0 0 1px rgba(184,155,131,.25)}
+.note.heart::before{content:"♥";position:absolute;top:-.55rem;left:-.35rem;font-size:.85rem;color:var(--latte);transform:rotate(-12deg)}
+.note.birthday{font-family:var(--serif);font-size:1.1rem;color:var(--espresso);background:linear-gradient(180deg,#F6EADA,#E9DAC4)}
+.note.funny.in{animation:wiggle .7s ease .1s}
+@keyframes wiggle{0%{scale:1}25%{scale:1.035}55%{scale:.995}100%{scale:1}}
+.note .line{opacity:0;transform:translateY(6px);transition:opacity .9s ease,transform .9s ease;display:block}
+.note .line + .line{margin-top:.5rem}
+.note .line.in{opacity:1;transform:none}
+.note .places{font-family:var(--serif);letter-spacing:.02em;color:var(--mocha)}
+.note.faded{opacity:.44}
+.note.leaving{opacity:0!important;transition:opacity 1.1s ease}
+
+#figure{position:absolute;bottom:6vh;left:50%;height:min(42vh,360px);z-index:2;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
+.scene-on #figure{opacity:1}
+#figure svg{display:block;height:100%;width:auto;overflow:visible}
+@media (max-width:640px){#figure{height:min(30vh,250px);bottom:4vh}}
+
+#audio-ui{position:absolute;right:max(1rem,env(safe-area-inset-right));bottom:max(1rem,env(safe-area-inset-bottom));display:flex;align-items:center;gap:.4rem;opacity:0;transition:opacity 1s ease;z-index:6}
+.scene-on #audio-ui{opacity:1}
+.actl{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--mocha);background:rgba(247,241,232,.7);border:1px solid rgba(184,155,131,.4);backdrop-filter:blur(6px);transition:background .3s ease,transform .3s ease}
+.actl:hover{background:var(--cream);transform:translateY(-1px)}
+.actl.off{color:var(--latte)}
+.actl svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#tip{position:absolute;right:0;bottom:44px;white-space:nowrap;font-size:.72rem;color:var(--latte);background:rgba(247,241,232,.9);padding:.25rem .5rem;border-radius:4px;opacity:0;transition:opacity .4s ease;pointer-events:none}
+#tip.show{opacity:1}
+
+#final{position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;padding:9vw 7vw;pointer-events:none;opacity:0;transition:opacity 1.4s ease}
+#final.show{opacity:1}
+#final .wrap{max-width:34rem;text-align:center}
+#final .l{opacity:0;transform:translateY(12px);transition:opacity 1.5s ease,transform 1.5s ease}
+#final .l.in{opacity:1;transform:none}
+#final .name{font-family:var(--serif);font-size:clamp(1.9rem,7vw,3rem);line-height:1.1;margin:0 0 .3rem}
+#final .sub{font-family:var(--serif);font-size:clamp(1.15rem,4.4vw,1.7rem);color:var(--mocha);margin:0 0 2.6rem}
+#final .body{font-size:clamp(.95rem,3.4vw,1.06rem);line-height:1.85;color:var(--mocha);margin:0 auto 1.9rem;max-width:30rem}
+#final .places{font-family:var(--serif);font-size:clamp(1.1rem,4.2vw,1.45rem);letter-spacing:.04em;margin:0 0 2.2rem}
+#final .toast{font-family:var(--serif);font-size:clamp(1.05rem,4vw,1.35rem);margin:0 0 1.6rem}
+#final .sign{font-size:clamp(1rem,3.8vw,1.15rem);margin:0}
+
+#fadeout{position:absolute;inset:0;background:var(--ivory);opacity:0;pointer-events:none;transition:opacity 2.4s ease;z-index:9}
+#fadeout.show{opacity:1}
+.dim #sky{filter:saturate(.82) brightness(1.02)}
+.hidden{display:none!important}
+@media (max-width:520px){.note{font-size:.88rem;padding:.85rem 1rem}.note.heart{font-size:.98rem}}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="sky"></div>
+  <svg id="grain" aria-hidden="true">
+    <filter id="grainf"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.08"/></feComponentTransfer></filter>
+    <rect width="100%" height="100%" filter="url(#grainf)"/>
+  </svg>
+  <svg id="ground" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 176 C 180 158, 340 186, 520 172 S 880 156, 1200 174 L1200 260 L0 260 Z" fill="#EFE4D2"/>
+    <path d="M0 176 C 180 158, 340 186, 520 172 S 880 156, 1200 174" fill="none" stroke="#D8C3AE" stroke-width="2"/>
+  </svg>
+
+  <div id="balloons"></div>
+  <div id="figure" aria-hidden="true"></div>
+  <div id="notes"></div>
+  <canvas id="confetti"></canvas>
+
+  <div id="search">
+    <h1>What are you looking for?</h1>
+    <div class="searchbar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6B4F43" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+      <input id="q" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type it and press enter" aria-label="Search">
+    </div>
+    <div id="hint">try: Jermiah's 22nd</div>
+  </div>
+
+  <div id="found"><p id="foundtext">Something worth celebrating has been found.</p></div>
+
+  <div id="final">
+    <div class="wrap">
+      <p class="l name">Jermiah,</p>
+      <p class="l sub">Happy 22nd Birthday.</p>
+      <p class="l body">I hope this year brings you so much success, so much joy, and the chance to see the things you've been dreaming about finally come to life.</p>
+      <p class="l body">I can't wait to see the castles you build, the places you go, and the person you continue to become.</p>
+      <p class="l places">Japan. Milan. New York. France.</p>
+      <p class="l toast">Here's to 22 — and everything waiting for you.</p>
+      <p class="l sign">Happy Birthday. 🤎</p>
+    </div>
+  </div>
+
+  <div id="audio-ui">
+    <span id="tip"></span>
+    <button class="actl" id="music" aria-label="Music"></button>
+    <button class="actl" id="sfx" aria-label="Sound effects"></button>
+  </div>
+
+  <div id="fadeout"></div>
+</div>
+
+<audio id="track" loop preload="auto"></audio>
+<input type="file" id="picker" accept="audio/*" class="hidden">
+
+<script>
+(function(){
+"use strict";
+const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+const S = {
+  stage:$("stage"), balloons:$("balloons"), notes:$("notes"), figure:$("figure"),
+  search:$("search"), found:$("found"), foundtext:$("foundtext"), final:$("final"),
+  fade:$("fadeout"), q:$("q"), hint:$("hint"), cvs:$("confetti"),
+  track:$("track"), picker:$("picker"), tip:$("tip")
+};
+const PALETTE = ["#EFE4D2","#D8C3AE","#B89B83","#6B4F43","#F7F1E8","#C9B49B"];
+let W = innerWidth, H = innerHeight;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const smooth=u=>u*u*(3-2*u);
+
+/* ===================== SOUND ===================== */
+const Sound = (function(){
+  let ctx=null, on=true;
+  function ac(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return ctx; }
+  function pop(kind){
+    if(!on) return; const c=ac(); if(!c) return; const t=c.currentTime;
+    const len=Math.floor(c.sampleRate*0.09);
+    const buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2);
+    const src=c.createBufferSource(); src.buffer=buf;
+    const bp=c.createBiquadFilter(); bp.type="bandpass";
+    bp.frequency.value = kind==="heart"?900:kind==="birthday"?1500:1200; bp.Q.value=1.1;
+    const g=c.createGain(); g.gain.value= kind==="heart"?0.10:0.16;
+    src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(t);
+    const o=c.createOscillator(), og=c.createGain();
+    o.type="sine"; o.frequency.setValueAtTime(kind==="heart"?300:420,t);
+    o.frequency.exponentialRampToValueAtTime(90,t+0.14);
+    og.gain.setValueAtTime(0.09,t); og.gain.exponentialRampToValueAtTime(0.0008,t+0.18);
+    o.connect(og); og.connect(c.destination); o.start(t); o.stop(t+0.2);
+  }
+  function chime(notes,vol){
+    if(!on) return; const c=ac(); if(!c) return; const t=c.currentTime;
+    notes.forEach((f,i)=>{
+      const o=c.createOscillator(), g=c.createGain();
+      o.type="triangle"; o.frequency.value=f; const s=t+i*0.11;
+      g.gain.setValueAtTime(0.0001,s);
+      g.gain.exponentialRampToValueAtTime(vol||0.05,s+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,s+0.7);
+      o.connect(g); g.connect(c.destination); o.start(s); o.stop(s+0.75);
+    });
+  }
+  return { pop, chime,
+    resume(){ const c=ac(); if(c&&c.state==="suspended") c.resume(); },
+    toggle(){ on=!on; return on; } };
+})();
+
+/* ===================== MUSIC ===================== */
+const Music = (function(){
+  const el=S.track; let ready=false, wanted=false, tried=false;
+  const btn=$("music"), sfxBtn=$("sfx");
+  const ON='<svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.6"/><circle cx="16.5" cy="16" r="2.6"/></svg>';
+  const OFF='<svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.6"/><circle cx="16.5" cy="16" r="2.6"/><path d="M3 3l18 18"/></svg>';
+  const SON='<svg viewBox="0 0 24 24"><path d="M5 9v6h3l4.5 3.5V5.5L8 9H5z"/><path d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path d="M19 6.8a7.5 7.5 0 0 1 0 10.4"/></svg>';
+  const SOFF='<svg viewBox="0 0 24 24"><path d="M5 9v6h3l4.5 3.5V5.5L8 9H5z"/><path d="M17 10l4 4M21 10l-4 4"/></svg>';
+  function tip(t){ S.tip.textContent=t; S.tip.classList.add("show"); clearTimeout(tip._t); tip._t=setTimeout(()=>S.tip.classList.remove("show"),2800); }
+  function paint(){ const p=ready&&!el.paused; btn.innerHTML=p?ON:OFF; btn.classList.toggle("off",!p); }
+  function fadeIn(){ let v=0; const id=setInterval(()=>{ v=Math.min(.55,v+0.02); el.volume=v; if(v>=.55) clearInterval(id); },70); }
+  function load(src){ el.src=src; el.volume=0; ready=true; return el.play().then(()=>{fadeIn();paint();}).catch(paint); }
+  function probe(){
+    const names=["song.mp3","music.mp3","something-just-like-this.mp3","song.m4a"]; let i=0;
+    (function next(){
+      if(i>=names.length){ tried=true; if(wanted) tip("Tap the note to add your song"); paint(); return; }
+      const a=new Audio(); a.src=names[i];
+      a.addEventListener("canplaythrough",()=>load(names[i]),{once:true});
+      a.addEventListener("error",()=>{i++;next();},{once:true});
+      a.load();
+    })();
+  }
+  btn.addEventListener("click",()=>{
+    Sound.resume();
+    if(!ready){ S.picker.click(); return; }
+    if(el.paused) el.play().then(paint).catch(paint); else { el.pause(); paint(); }
+  });
+  S.picker.addEventListener("change",e=>{
+    const f=e.target.files&&e.target.files[0]; if(!f) return;
+    load(URL.createObjectURL(f)); tip(f.name.replace(/\.[^.]+$/,""));
+  });
+  sfxBtn.addEventListener("click",()=>{
+    const on=Sound.toggle(); sfxBtn.innerHTML=on?SON:SOFF; sfxBtn.classList.toggle("off",!on); if(on) Sound.pop("regular");
+  });
+  sfxBtn.innerHTML=SON; paint();
+  return { start(){ wanted=true; Sound.resume(); if(ready) el.play().then(paint).catch(paint); else if(!tried) probe(); else tip("Tap the note to add your song"); }, probe };
+})();
+
+/* ===================== CONFETTI ===================== */
+const Confetti = (function(){
+  const c=S.cvs, x=c.getContext("2d"); let parts=[], ambient=false;
+  function size(){ const d=Math.min(2,devicePixelRatio||1); c.width=W*d; c.height=H*d; x.setTransform(d,0,0,d,0,0); }
+  function make(px,py,n,spread,type){
+    for(let i=0;i<n;i++){
+      const a=Math.random()*Math.PI*2, sp=Math.random()*spread;
+      parts.push({x:px,y:py,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-Math.random()*1.4,
+        w:2+Math.random()*5,h:2+Math.random()*7,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.24,
+        c:PALETTE[(Math.random()*PALETTE.length)|0],life:1,decay:.004+Math.random()*.006,
+        heart:type==="heart"&&Math.random()<.55});
+    }
+  }
+  function rain(n){
+    for(let i=0;i<n;i++) parts.push({x:Math.random()*W,y:-20-Math.random()*H*.4,
+      vx:(Math.random()-.5)*.35,vy:.5+Math.random()*.9,w:2+Math.random()*4,h:2+Math.random()*6,
+      r:Math.random()*Math.PI,vr:(Math.random()-.5)*.08,c:PALETTE[(Math.random()*PALETTE.length)|0],
+      life:1,decay:.0016,drift:Math.random()*6});
+  }
+  function heart(g,s){ g.beginPath(); g.moveTo(0,s*.32);
+    g.bezierCurveTo(-s*.9,-s*.42,-s*.42,-s,0,-s*.42);
+    g.bezierCurveTo(s*.42,-s,s*.9,-s*.42,0,s*.32); g.closePath(); g.fill(); }
+  function frame(){
+    x.clearRect(0,0,W,H);
+    for(let i=parts.length-1;i>=0;i--){
+      const p=parts[i];
+      p.vy+=.012; p.vx*=.995; p.vy*=.995;
+      if(p.drift!==undefined) p.vx+=Math.sin((p.y+p.drift*40)/90)*.006;
+      p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.life-=p.decay;
+      if(p.life<=0||p.y>H+40){ parts.splice(i,1); continue; }
+      x.save(); x.translate(p.x,p.y); x.rotate(p.r);
+      x.globalAlpha=Math.max(0,Math.min(1,p.life)); x.fillStyle=p.c;
+      if(p.heart) heart(x,p.w*1.5); else x.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      x.restore();
+    }
+    if(ambient&&parts.length<170&&Math.random()<.09) rain(1);
+    requestAnimationFrame(frame);
+  }
+  size(); requestAnimationFrame(frame);
+  return { size,
+    burst(px,py,kind){ make(px,py, kind==="birthday"?54:kind==="heart"?26:kind==="final"?90:34,
+      kind==="birthday"?4.2:2.6, kind); },
+    rain, setAmbient(v){ambient=v;}, clearSoon(){ parts.forEach(p=>p.decay=Math.max(p.decay,.012)); } };
+})();
+
+/* ===================== STICK FIGURE =====================
+   Phase 1 hears the music, then loops phases 2-8.
+   ======================================================== */
+const Figure = (function(){
+  const HEAD = "data:image/jpeg;base64,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";
+  S.figure.innerHTML = `
+  <svg viewBox="0 0 200 276" role="img">
+    <defs>
+      <clipPath id="headclip"><circle cx="0" cy="0" r="19.5"/></clipPath>
+      <filter id="rough" x="-25%" y="-25%" width="150%" height="150%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <radialGradient id="glow"><stop offset="0%" stop-color="#E7D6C0" stop-opacity=".8"/><stop offset="100%" stop-color="#E7D6C0" stop-opacity="0"/></radialGradient>
+    </defs>
+    <ellipse id="glowE" cx="100" cy="150" rx="74" ry="90" fill="url(#glow)"/>
+    <ellipse id="shadow" cx="100" cy="250" rx="42" ry="7" fill="#C9B49B" opacity=".5"/>
+    <g id="all">
+      <g id="body" filter="url(#rough)" fill="none" stroke="#3A2921" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round">
+        <path id="spine"/><path id="yoke"/><path id="armL"/><path id="armR"/><path id="legL"/><path id="legR"/>
+      </g>
+      <g id="head">
+        <circle r="20" fill="#EFE4D2"/>
+        <image x="-20.5" y="-20.5" width="41" height="41" href="${HEAD}" clip-path="url(#headclip)" preserveAspectRatio="xMidYMid slice"/>
+        <circle r="20" fill="none" stroke="#3A2921" stroke-width="4.2"/>
+      </g>
+    </g>
+  </svg>`;
+
+  const q=s=>S.figure.querySelector(s);
+  const spine=q("#spine"), yoke=q("#yoke"), armL=q("#armL"), armR=q("#armR"),
+        legL=q("#legL"), legR=q("#legR"), head=q("#head"), all=q("#all"),
+        glowE=q("#glowE"), shadow=q("#shadow");
+
+  const P=(o,a,l)=>({x:o.x+Math.sin(a)*l, y:o.y+Math.cos(a)*l});
+  const f1=n=>n.toFixed(1);
+  const seg=(a,b,c)=>`M${f1(a.x)} ${f1(a.y)} L${f1(b.x)} ${f1(b.y)} L${f1(c.x)} ${f1(c.y)}`;
+
+  const UA=31, FA=29, TH=35, SN=35, SW=11;
+  const BPM=103, beat=60/BPM;
+  const SEQ=[["groove",4],["sweep",4],["guard",4],["knee",4],["travel",4],["celebrate",2],["turn",2]];
+  let cum=0; const MARKS=SEQ.map(s=>{ const m={n:s[0],start:cum,bars:s[1]}; cum+=s[1]; return m; });
+  const TOTAL=cum;
+
+  let t0=0, state="idle", react=null, lagLean=0, lagHead=0, travel=0, travelT=0;
+  let maxTravel=90;
+
+  // ---- pose parameter bag ----
+  function base(){
+    return { x:0, bounce:0, lean:0, headTilt:0, sx:1, rot:0,
+      shLd:0, shRd:0, shLx:0, shRx:0,
+      aR:0.62, fR:-0.30, aL:-0.62, fL:0.30,
+      lR:0.16, kR:0.10, lL:-0.16, kL:-0.10, travelPx:travel };
+  }
+
+  /* PHASE 1 — he hears the music (about 2.4s) */
+  function intro(e){ // e = seconds since celebration began
+    const p=base();
+    p.aR=0.44; p.fR=-0.16; p.aL=-0.44; p.fL=0.16;   // arms glued to his sides
+    p.lR=0.11; p.kR=0.04; p.lL=-0.11; p.kL=-0.04;
+    if(e>0.35){                                      // head tilts
+      const u=smooth(clamp((e-0.35)/0.3,0,1)); p.headTilt=-0.24*u;
+    }
+    if(e>0.65){                                      // one shoulder
+      const u=Math.sin(clamp((e-0.65)/0.28,0,1)*Math.PI); p.shRd=-9*u; p.aR-=0.16*u;
+    }
+    if(e>0.95){                                      // then the other
+      const u=Math.sin(clamp((e-0.95)/0.28,0,1)*Math.PI); p.shLd=-9*u; p.aL+=0.16*u;
+      p.headTilt=0.20*u-0.08;
+    }
+    if(e>1.25){                                      // knees start bouncing — trying not to
+      const u=clamp((e-1.25)/0.35,0,1);
+      const b=Math.abs(Math.sin((e-1.25)/beat*Math.PI));
+      p.bounce=b*5*u; p.lR=0.16; p.lL=-0.16;
+      p.shRd=-4*b; p.shLd=-4*b;
+      p.headTilt=Math.sin((e-1.25)*5)*0.14;
+      p.aR=0.46+b*0.14; p.aL=-0.46-b*0.14;
+    }
+    if(e>2.0){                                       // gives in
+      const u=smooth(clamp((e-2.0)/0.42,0,1));
+      p.aR=lerp(0.52,2.30,u); p.fR=lerp(-0.18,-0.26,u);
+      p.aL=lerp(-0.52,-2.30,u); p.fL=lerp(0.18,0.26,u);
+      p.bounce=lerp(p.bounce,16,u); p.headTilt=lerp(p.headTilt,0,u);
+      p.lR=0.16+0.16*u; p.lL=-0.16-0.16*u;
+    }
+    return p;
+  }
+
+  /* PHASE 2 — side-to-side groove */
+  function groove(lb){
+    const p=base();
+    const s=-Math.cos(Math.PI*lb/2);        // -1 left, +1 right
+    p.x = s*13;
+    p.lean = s*0.075;
+    p.bounce = 5*Math.abs(Math.sin(Math.PI*lb));
+    const dip = 2.2*Math.abs(Math.sin(Math.PI*lb));
+    p.shLd=dip; p.shRd=dip;
+    // the trailing arm swings across the chest
+    p.aR = 0.75 + s*1.05; p.fR = -0.55 + s*0.25;   // steps left -> right arm crosses the chest
+    p.aL = -0.75 + s*1.05; p.fL = 0.55 + s*0.25;   // steps right -> left arm crosses the chest
+    p.lR = 0.16 + Math.max(0,s)*0.30; p.kR = 0.10 + Math.max(0,s)*0.12;
+    p.lL = -0.16 + Math.min(0,s)*0.30; p.kL = -0.10 + Math.min(0,s)*0.12;
+    return p;
+  }
+
+  /* PHASE 3 — arm sweep */
+  function sweep(lb){
+    const p=groove(lb);                     // footwork keeps running underneath
+    if(lb<4){                                // right arm sweeps across the chest
+      const u=smooth(clamp((lb)/3.2,0,1));
+      p.aR = lerp(1.15,-1.05,u); p.fR = lerp(-0.35,-1.05,u);
+      p.aL = -1.30; p.fL = 0.55;
+    } else if(lb<8){                          // left arm sweeps
+      const u=smooth(clamp((lb-4)/3.2,0,1));
+      p.aL = lerp(-1.15,1.05,u); p.fL = lerp(0.35,1.05,u);
+      p.aR = 1.30; p.fR = -0.55;
+    } else if(lb<12){                         // both arms open
+      p.aR=1.95; p.fR=-0.22; p.aL=-1.95; p.fL=0.22;
+      p.bounce = 9*Math.abs(Math.sin(Math.PI*lb));
+      p.x = Math.sin(Math.PI*lb/2)*6;
+    } else {                                  // pulled back in
+      const u=smooth(clamp((lb-12)/1.4,0,1));
+      p.aR=lerp(1.95,0.55,u); p.fR=lerp(-0.22,-1.25,u);
+      p.aL=lerp(-1.95,-0.55,u); p.fL=lerp(0.22,1.25,u);
+      p.bounce = 7*Math.abs(Math.sin(Math.PI*lb));
+    }
+    return p;
+  }
+
+  /* PHASE 4 — the security-guard groove */
+  function guard(lb){
+    const p=base();
+    p.lR=0.44; p.kR=-0.30; p.lL=-0.44; p.kL=0.30;    // feet apart, knees bent
+    if(lb<8){
+      const s=Math.sin(Math.PI*lb);                   // quick left-right
+      p.lean = s*0.15; p.x = s*5;
+      p.shRd = -4*Math.max(0,-s); p.shRx = -5*Math.max(0,-s);   // shoulder pushes forward
+      p.shLd = -4*Math.max(0, s); p.shLx =  5*Math.max(0, s);
+      p.bounce = -5 + 4*Math.abs(Math.sin(Math.PI*lb*2));
+      p.aR = 0.80 + s*0.55; p.fR = -0.70;
+      p.aL = -0.80 + s*0.55; p.fL = 0.70;
+    } else {
+      const fast = lb<11 ? 2 : 1;                     // double bounce, bounce, bounce
+      p.bounce = -3 + 10*Math.abs(Math.sin(Math.PI*lb*fast));
+      p.aR=0.95; p.fR=-1.35; p.aL=-0.95; p.fL=1.35;
+      p.lean = Math.sin(Math.PI*lb/2)*0.06;
+      p.shLd=-3*Math.abs(Math.sin(Math.PI*lb*fast)); p.shRd=p.shLd;
+    }
+    return p;
+  }
+
+  /* PHASE 5 — knee lift */
+  function knee(lb){
+    const p=base();
+    const c = lb<8 ? lb/2 : (lb-8);                  // slow, then double time
+    const rightUp = Math.floor(c)%2===0;
+    const lift = Math.max(0, Math.sin(Math.PI*(c%1)));
+    p.bounce = 4 + 5*lift;
+    if(lb>=14){ p.bounce = 20*Math.abs(Math.sin(Math.PI*(lb-14)/2)); }  // bigger finish
+    if(rightUp){
+      p.lR = 0.16 + lift*1.19; p.kR = 0.10 - lift*1.04;   // thigh to hip height, shin hangs
+      p.aL = -0.70 - lift*0.80; p.fL = 0.35 + lift*0.70;  // opposite arm comes forward
+      p.aR = 0.70 + lift*0.25; p.fR = -0.45;
+    } else {
+      p.lL = -0.16 - lift*1.19; p.kL = -0.10 + lift*1.04;
+      p.aR = 0.70 + lift*0.80; p.fR = -0.35 - lift*0.70;
+      p.aL = -0.70 - lift*0.25; p.fL = 0.45;
+    }
+    p.lean = (rightUp?-1:1)*lift*0.07;
+    return p;
+  }
+
+  /* PHASE 6 — travelling step */
+  function travelStep(lb){
+    const p=base();
+    const out = lb<8;
+    const u = out ? lb/8 : (16-lb)/8;
+    const k = u*2, st = Math.floor(k), frac = k-st;
+    const stair = (st + smooth(clamp(frac*1.7,0,1)))/2;
+    p.travelPx = -maxTravel*stair;
+    const s = Math.sin(Math.PI*lb);
+    p.bounce = 6*Math.abs(s);
+    p.lean = (out?-1:1)*0.06;
+    p.x = s*4;
+    p.aR = 0.72 + s*0.55; p.fR=-0.50;
+    p.aL = -0.72 + s*0.55; p.fL=0.50;
+    p.lR = 0.16 + Math.max(0,s)*0.34; p.kR = 0.10 + Math.max(0,s)*0.20;
+    p.lL = -0.16 + Math.min(0,s)*0.34; p.kL = -0.10 + Math.min(0,s)*0.20;
+    return p;
+  }
+
+  /* PHASE 7 — arm-up celebration */
+  function celebrate(lb){
+    const p=base();
+    p.bounce = 7*Math.abs(Math.sin(Math.PI*lb));
+    if(lb<2){ p.aR=2.40; p.fR=-0.18; p.aL=-1.05; p.fL=0.85; }
+    else if(lb<4){ p.aL=-2.40; p.fL=0.18; p.aR=1.05; p.fR=-0.85; }
+    else if(lb<6){ p.aR=2.34; p.fR=-0.16; p.aL=-2.34; p.fL=0.16; }
+    else if(lb<7){                                     // small jump
+      const u=Math.sin(Math.PI*(lb-6));
+      p.bounce = 30*u; p.aR=2.5; p.aL=-2.5; p.fR=-0.1; p.fL=0.1;
+      p.lR=0.30+u*0.35; p.kR=0.10-u*0.55; p.lL=-0.30-u*0.35; p.kL=-0.10+u*0.55;
+    } else {                                           // land, knees bent
+      const u=1-clamp(lb-7,0,1);
+      p.bounce = -7*u; p.lR=0.42; p.kR=-0.28; p.lL=-0.42; p.kL=0.28;
+      p.aR=1.30; p.fR=-0.80; p.aL=-1.30; p.fL=0.80;
+    }
+    return p;
+  }
+
+  /* PHASE 8 — little turn */
+  function turn(lb){
+    const p=base();
+    p.bounce = 6*Math.abs(Math.sin(Math.PI*lb));
+    if(lb<2){                                          // arms come inward
+      const u=smooth(clamp(lb/2,0,1));
+      p.aR=lerp(1.10,0.42,u); p.fR=lerp(-0.6,-1.35,u);
+      p.aL=lerp(-1.10,-0.42,u); p.fL=lerp(0.6,1.35,u);
+    } else if(lb<4.5){                                 // the fake spin
+      const u=(lb-2)/2.5;
+      p.sx = Math.cos(2*Math.PI*u);
+      p.rot = Math.sin(2*Math.PI*u)*7;
+      p.aR=0.40; p.fR=-1.40; p.aL=-0.40; p.fL=1.40;
+      p.bounce = 8*Math.abs(Math.sin(Math.PI*u*2));
+    } else if(lb<6){                                   // arms open again
+      const u=smooth(clamp((lb-4.5)/1.2,0,1));
+      p.aR=lerp(0.42,1.85,u); p.fR=lerp(-1.35,-0.30,u);
+      p.aL=lerp(-0.42,-1.85,u); p.fL=lerp(1.35,0.30,u);
+    } else {                                           // two shoulder bounces
+      const b=Math.abs(Math.sin(Math.PI*(lb-6)*2));
+      p.shLd=-5*b; p.shRd=-5*b; p.bounce=4+6*b;
+      p.aR=1.00; p.fR=-0.85; p.aL=-1.00; p.fL=0.85;
+    }
+    return p;
+  }
+
+  function standing(t){
+    const p=base();
+    p.bounce=Math.sin(t*1.1)*1.2;
+    p.aR=0.58; p.fR=-0.26; p.aL=-0.58; p.fL=0.26;
+    p.lR=0.13; p.kR=0; p.lL=-0.13; p.kL=0;
+    return p;
+  }
+
+  function choreo(now){
+    const t=(now-t0)/1000;
+    if(state==="idle")  return standing(t);
+    if(state==="intro"){
+      if(t>2.42){ state="dance"; t0=now; return choreo(now); }
+      return intro(t);
+    }
+    if(state==="stop")  return standing(t);
+    const b=t/beat, barPos=(b/4)%TOTAL;
+    let mark=MARKS[0];
+    for(const m of MARKS){ if(barPos>=m.start && barPos<m.start+m.bars) mark=m; }
+    const lb=(barPos-mark.start)*4;               // local beat inside the phase
+    switch(mark.n){
+      case "groove":    return groove(lb);
+      case "sweep":     return sweep(lb);
+      case "guard":     return guard(lb);
+      case "knee":      return knee(lb);
+      case "travel":    return travelStep(lb);
+      case "celebrate": return celebrate(lb);
+      case "turn":      return turn(lb);
+    }
+    return groove(lb);
+  }
+
+  function applyReact(p,now){
+    const e=(now-react.t)/react.dur;
+    if(e>=1){ react=null; return p; }
+    const k=Math.sin(Math.PI*e);
+    if(react.kind==="funny"){
+      p.x += Math.sin(e*Math.PI*6)*11*k;
+      p.lean += Math.sin(e*Math.PI*5)*0.26*k;
+      p.aR = 1.90 + Math.sin(e*17)*0.30; p.fR = -1.10;
+      p.aL = -2.55 + Math.sin(e*20)*0.28; p.fL = 0.45;
+      p.bounce += k*7; p.headTilt = Math.sin(e*13)*0.20;
+    } else {
+      p.bounce += k*26;
+      p.aR = 2.36; p.fR = -0.16; p.aL = -2.36; p.fL = 0.16;
+      p.lR = 0.18 + k*0.30; p.lL = -0.18 - k*0.30;
+      p.kR = k*0.30; p.kL = -k*0.30;
+    }
+    return p;
+  }
+
+  function draw(now){
+    let p = choreo(now);
+    if(react) p = applyReact(p,now);
+
+    // head lags behind the torso so it never reads robotic
+    lagLean += (p.lean - lagLean)*0.16;
+    lagHead += ((p.headTilt + (p.lean-lagLean)*1.5) - lagHead)*0.20;
+    travel += (p.travelPx - travel)*0.10;
+
+    const hip={x:100+p.x, y:178-p.bounce};
+    const neck={x:hip.x+Math.sin(p.lean)*64, y:hip.y-64*Math.cos(p.lean)};
+    const hc={x:neck.x+Math.sin(lagLean+lagHead)*22, y:neck.y-22*Math.cos(lagLean+lagHead)};
+    const cs=Math.cos(p.lean), sn=Math.sin(p.lean);
+    const shR={x:neck.x+SW*cs+p.shRx, y:neck.y+SW*sn+2+p.shRd};
+    const shL={x:neck.x-SW*cs+p.shLx, y:neck.y-SW*sn+2+p.shLd};
+
+    const eR=P(shR,p.aR,UA), hR=P(eR,p.aR+p.fR,FA);
+    const eL=P(shL,p.aL,UA), hL=P(eL,p.aL+p.fL,FA);
+    const kR=P(hip,p.lR,TH), ftR=P(kR,p.lR+p.kR,SN);
+    const kL=P(hip,p.lL,TH), ftL=P(kL,p.lL+p.kL,SN);
+
+    // torso curves toward the lean instead of staying a rigid stick
+    const mid={x:(hip.x+neck.x)/2 + Math.sin(p.lean)*5, y:(hip.y+neck.y)/2};
+    spine.setAttribute("d",`M${f1(hip.x)} ${f1(hip.y)} Q${f1(mid.x)} ${f1(mid.y)} ${f1(neck.x)} ${f1(neck.y)}`);
+    yoke.setAttribute("d",`M${f1(shL.x)} ${f1(shL.y)} L${f1(shR.x)} ${f1(shR.y)}`);
+    armR.setAttribute("d",seg(shR,eR,hR));
+    armL.setAttribute("d",seg(shL,eL,hL));
+    legR.setAttribute("d",seg(hip,kR,ftR));
+    legL.setAttribute("d",seg(hip,kL,ftL));
+
+    const flip = (p.sx<0?-1:1)/Math.max(0.4,Math.abs(p.sx));   // face stays round while he spins
+    head.setAttribute("transform",
+      `translate(${f1(hc.x)},${f1(hc.y)}) rotate(${(lagHead*22+p.rot*0.4).toFixed(1)}) scale(${flip.toFixed(3)},1)`);
+    all.setAttribute("transform",
+      `translate(100,140) scale(${p.sx.toFixed(3)},1) rotate(${p.rot.toFixed(2)}) translate(-100,-140)`);
+
+    glowE.setAttribute("cx",f1(hip.x)); glowE.setAttribute("cy",f1(hip.y-16));
+    shadow.setAttribute("cx",f1(100+p.x*0.5));
+    shadow.setAttribute("rx",Math.max(20,42-p.bounce*0.8).toFixed(1));
+    shadow.setAttribute("opacity",Math.max(.1,.5-p.bounce*.012).toFixed(2));
+
+    S.figure.style.transform=`translateX(calc(-50% + ${travel.toFixed(1)}px))`;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+
+  return {
+    hearMusic(){ state="intro"; t0=performance.now(); },
+    resume(){ state="dance"; t0=performance.now(); },
+    stop(){ state="stop"; t0=performance.now(); travel=0; },
+    react(kind){ react={t:performance.now(),dur:kind==="funny"?1400:900,kind}; },
+    setTravel(px){ maxTravel=px; },
+    get maxTravel(){ return maxTravel; },
+    get travelX(){ return travel; }
+  };
+})();
+
+/* ===================== BALLOON ART ===================== */
+function shade(hex,amt){
+  const n=parseInt(hex.slice(1),16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  const f=v=>Math.max(0,Math.min(255, amt>0? v+(255-v)*amt : v*(1+amt)));
+  return "#"+[f(r),f(g),f(b)].map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");
+}
+function balloonSVG(shape,color,label,big){
+  const w=big?152:120, h=big?213:168;
+  const dark=shade(color,-0.22), light=shade(color,0.3);
+  const id="g"+Math.random().toString(36).slice(2,8);
+  const body = shape==="heart"
+    ? `<path d="M60 118 C 6 76, 13 28, 42 25 C 55 23.5, 60 33, 60 40 C 60 33, 65 23.5, 78 25 C 107 28, 114 76, 60 118 Z" fill="url(#${id})" stroke="${dark}" stroke-width="1.2" stroke-opacity=".35"/>`
+    : `<ellipse cx="60" cy="66" rx="43" ry="52" fill="url(#${id})" stroke="${dark}" stroke-width="1.2" stroke-opacity=".3"/>`;
+  let txt="";
+  if(label){
+    const words=label.split(" ");
+    txt = words.length>1
+      ? `<text x="60" y="${shape==="heart"?66:68}" text-anchor="middle" class="label small">`+
+        words.map((wd,i)=>`<tspan x="60" dy="${i?12:0}">${wd}</tspan>`).join("")+`</text>`
+      : `<text x="60" y="${shape==="heart"?72:74}" text-anchor="middle" class="label ${label.length>4?"small":""}">${label}</text>`;
+  }
+  const hx = shape==="heart"?40:42, hy = shape==="heart"?52:48;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 120 168">
+    <defs><radialGradient id="${id}" cx="34%" cy="26%" r="76%">
+      <stop offset="0%" stop-color="${light}"/><stop offset="46%" stop-color="${color}"/>
+      <stop offset="100%" stop-color="${dark}"/></radialGradient></defs>
+    <path d="M60 118 C 62 132, 54 141, 58 160" fill="none" stroke="${dark}" stroke-width="1.3" stroke-opacity=".55"/>
+    ${body}
+    <path d="M56 116 l4 -5 l4 5 l-4 4 z" fill="${dark}"/>
+    <ellipse cx="${hx}" cy="${hy}" rx="${shape==="heart"?11:12}" ry="${shape==="heart"?16:18}" fill="#fff" opacity=".42" transform="rotate(-22 ${hx} ${hy})"/>
+    <ellipse cx="${shape==="heart"?52:56}" cy="${shape==="heart"?34:28}" rx="5" ry="3" fill="#fff" opacity=".5"/>
+    <ellipse cx="80" cy="88" rx="7" ry="14" fill="#fff" opacity=".13" transform="rotate(16 80 88)"/>
+    ${shape==="heart"&&!label?`<path d="M60 92 c -9 -7, -8 -16, -3 -17 c 2 -.4, 3 1, 3 2 c 0 -1, 1 -2.4, 3 -2 c 5 1, 6 10, -3 17 z" fill="#F7F1E8" opacity=".6"/>`:""}
+    ${txt}</svg>`;
+}
+
+/* ===================== CONTENT ===================== */
+const COL={deep:"#6B4F43",mid:"#8E7059",latte:"#B89B83",light:"#D8C3AE",cream:"#E4D3BC"};
+const WAVES=[
+  [ {kind:"birthday",shape:"round",label:"22",color:COL.latte,msg:["22 looks good on you."]},
+    {kind:"birthday",shape:"heart",label:"🎂",color:COL.light,msg:["Here's to 22. 🤎"]},
+    {kind:"birthday",shape:"round",label:"HAPPY BIRTHDAY",color:COL.mid,msg:["Happy Birthday, Jermiah! 🤎"]} ],
+  [ {kind:"regular",shape:"heart",color:COL.light,msg:["I'll never get bored talking to you. Our conversations are always interesting."]},
+    {kind:"funny",shape:"round",color:COL.cream,msg:["Your completely out-of-pocket comments never fail to make me laugh."]},
+    {kind:"funny",shape:"round",color:COL.latte,msg:["I'll never forget you saying you'd go half bald for life for $1 million. 😂"]} ],
+  [ {kind:"heart",shape:"heart",color:COL.light,msg:["I love how humble you are."]},
+    {kind:"heart",shape:"heart",color:COL.latte,msg:["I love how attentive you are and how much you love God and others."]},
+    {kind:"heart",shape:"heart",color:COL.mid,msg:["I love how much you believe in yourself and always keep your head up."]} ],
+  [ {kind:"heart",shape:"heart",color:COL.latte,msg:["I really admire your boldness, gentleness, honesty, and courage."]},
+    {kind:"heart",shape:"round",color:COL.light,msg:["I hope this year brings you so much success and that all your plans come to life."]},
+    {kind:"dreams",shape:"heart",color:COL.mid,big:true,tall:true,msg:[
+      "I can't wait to see all the things you've dreamed of become real.",
+      "All the castles you want to build.",
+      "<span class='places'>Japan. Milan. New York. France.</span>",
+      "I can't wait to see it all happen. ❤️"]} ]
+];
+
+/* ===================== LAYOUT SLOTS =====================
+   Every balloon is assigned a resting slot before it floats in, so no two
+   messages can ever land on top of each other or on top of the dancer.
+   ======================================================== */
+const Layout = (function(){
+  let slots=[], noteW=304, cellH=144, estH=128;
+  const occupants=[];   // acquisition order; each holds {type, slot, el?, b?, tall}
+
+  function figureBox(){
+    // his drawn body fills only the middle ~62% of the svg box; pad for his travel
+    const r=S.figure.getBoundingClientRect();
+    const cx=(r.left+r.right)/2, core=r.width*0.31;
+    const pad=24+Figure.maxTravel*0.7;
+    return { left:cx-core-pad, right:cx+core+pad, top:r.top-16 };
+  }
+
+  function geometry(){
+    const narrow = W<640;
+    noteW = Math.min(narrow ? W*0.78 : 304, W-28);
+    estH  = narrow ? 108 : 128;
+    cellH = estH + 16;
+    const gapX = 22;
+    const cols = Math.max(1, Math.floor((W-24)/(noteW+gapX)));
+    const top = H*0.05, bottom = H-18;
+    const rows = Math.max(2, Math.floor((bottom-top)/cellH));
+    const cellW = (W-24)/cols;
+    const fb = figureBox();
+    const audioLeft = W-150, audioTop = H-84;
+    const out=[];
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      const cx = 12+cellW*(c+0.5), cy = top+cellH*(r+0.5);
+      const low = cy + estH/2;
+      if(low>fb.top && cx+noteW/2>fb.left && cx-noteW/2<fb.right) continue;  // dancer's floor
+      if(low>audioTop && cx+noteW/2>audioLeft) continue;                     // audio buttons
+      out.push({x:cx, y:cy, row:r, col:c, cellW, lastRow:false, taken:null});
+    }
+    const maxRow = out.reduce((m,o)=>Math.max(m,o.row),0);
+    out.forEach(o=>o.lastRow = o.row===maxRow);
+    return out;
+  }
+
+  function place(el, slot, tall){
+    const w=el.offsetWidth, h=el.offsetHeight;
+    const y = slot.y;
+    el.style.left = clamp(slot.x-w/2, 10, Math.max(10, W-w-10))+"px";
+    el.style.top  = clamp(y-h/2, 10, Math.max(10, H-h-10))+"px";
+  }
+
+  function build(){
+    slots = geometry();
+    // re-seat everyone that already has a place, in the order they arrived
+    let i=0;
+    for(const o of occupants){
+      if(o.retired) continue;
+      const s = slots[i++];
+      if(!s){ retire(o); continue; }
+      o.slot=s; s.taken=o;
+      if(o.type==="note" && o.el) place(o.el, s, o.tall);
+      if(o.type==="balloon" && o.b){
+        o.b.homeX = clamp(s.x, o.b.w*0.55, W-o.b.w*0.55);
+        o.b.homeY = s.y;
+      }
+    }
+    return slots.length;
+  }
+
+  function retire(o){
+    if(o.retired) return;
+    o.retired=true;
+    if(o.slot && o.slot.taken===o) o.slot.taken=null;
+    if(o.type==="note" && o.el){
+      o.el.classList.add("leaving");
+      const el=o.el; setTimeout(()=>el.remove(),1200);
+    }
+  }
+
+  function evictOldest(){
+    for(const o of occupants){
+      if(!o.retired && o.type==="note"){ retire(o); return true; }
+    }
+    return false;
+  }
+
+  function take(opts){
+    opts=opts||{};
+    let free = slots.filter(s=>!s.taken);
+    if(!free.length){ evictOldest(); free = slots.filter(s=>!s.taken); }
+    if(!free.length) return null;
+    if(opts.tall){
+      const better = free.filter(s=>!s.lastRow);
+      if(better.length) free = better;
+    }
+    const s = free[(Math.random()*free.length)|0];
+    const occ = { type:"balloon", slot:s, tall:!!opts.tall, retired:false };
+    s.taken = occ; occupants.push(occ);
+    return occ;
+  }
+
+  // a balloon pops: the same reservation now belongs to its message
+  function convert(occ, el, tall){
+    if(!occ) return;
+    occ.type="note"; occ.el=el; occ.tall=!!tall; occ.b=null;
+  }
+
+  return { build, take, convert, place, retire,
+           get noteW(){return noteW}, get count(){return slots.length} };
+})();
+
+/* ===================== BALLOONS ===================== */
+const B={ list:[], wave:-1, pending:0 };
+
+function spawn(cfg,opts){
+  opts=opts||{};
+  const occ  = opts.occ || null;
+  const slot = occ ? occ.slot : (opts.slot || null);
+  const shape = cfg.shape || (cfg.kind==="heart"||cfg.kind==="dreams"||cfg.kind==="final"?"heart":"round");
+  const bw = (cfg.big?152:120), bh=(cfg.big?213:168);
+  const b={
+    cfg, slot, occ, shape, w:bw, h:bh,
+    homeX: opts.homeX!==undefined?opts.homeX:(slot?slot.x:W/2),
+    homeY: opts.homeY!==undefined?opts.homeY:(slot?slot.y:H*0.3),
+    x: opts.startX!==undefined?opts.startX:(slot?slot.x:W/2),
+    y: H+rand(80,220),
+    ph: Math.random()*Math.PI*2,
+    rot: rand(-5,5), rotV: rand(-0.1,0.1),
+    born: performance.now(), dead:false,
+    front: Math.random()<0.45
+  };
+  // nudge the balloon off the exact slot centre so the scene isn't a grid
+  const room = slot ? Math.max(0,(slot.cellW - bw)/2) : 40;
+  b.homeX += rand(-1,1)*Math.min(30,room*0.55);
+  b.homeX = clamp(b.homeX, bw*0.55, W-bw*0.55);
+  b.x = b.homeX;
+
+  const el=document.createElement("button");
+  el.className="balloon";
+  el.setAttribute("aria-label", cfg.label?("Balloon: "+cfg.label):"Balloon — pop to reveal a message");
+  el.innerHTML = balloonSVG(shape,cfg.color,cfg.label||"",!!cfg.big)+'<span class="hit"></span>';
+  el.style.zIndex = b.front?3:1;
+  el.addEventListener("click",()=>popBalloon(b));
+  S.balloons.appendChild(el);
+  b.el=el;
+  if(occ) occ.b=b;
+  B.list.push(b);
+  return b;
+}
+
+function balloonLoop(now){
+  for(const b of B.list){
+    if(b.dead) continue;
+    const t=(now-b.born)/1000;
+    b.y += (b.homeY-b.y)*0.014;
+    b.x += (b.homeX-b.x)*0.02;
+    const bob = RM?0:Math.sin(t*0.8+b.ph)*8;
+    const swing = RM?0:Math.sin(t*0.42+b.ph*1.7)*14;
+    b.rot += b.rotV*(RM?0.2:1);
+    if(Math.abs(b.rot)>8) b.rotV*=-1;
+    const px=b.x+swing-b.w/2, py=b.y+bob-b.h*0.42;
+    const tf=`translate3d(${px.toFixed(1)}px,${py.toFixed(1)}px,0) rotate(${b.rot.toFixed(2)}deg)`;
+    b.el.style.transform=tf;
+    b.el.style.setProperty("--tf",tf);
+    b.cx=px+b.w/2; b.cy=py+b.h*0.40;
+  }
+  requestAnimationFrame(balloonLoop);
+}
+requestAnimationFrame(balloonLoop);
+
+function popBalloon(b){
+  if(b.dead) return;
+  b.dead=true;
+  const k=b.cfg.kind;
+  const sk = (k==="heart"||k==="dreams"||k==="final")?"heart":k==="birthday"?"birthday":"regular";
+  Sound.pop(sk);
+  Confetti.burst(b.cx,b.cy, k==="birthday"?"birthday":sk==="heart"?"heart":"regular");
+  if(k==="heart"||k==="dreams") Sound.chime([523.25,659.25,783.99],0.035);
+  if(k==="birthday") Sound.chime([659.25,783.99,1046.5],0.04);
+  b.el.classList.add("popping");
+  setTimeout(()=>b.el.remove(),400);
+  B.list=B.list.filter(x=>x!==b);
+  Figure.react(k==="funny"?"funny":"joy");
+
+  if(k==="final"){ finalMessage(); return; }
+  showNote(b.cfg,b,b.cx,b.cy);
+
+  if(B.pending===0){
+    if(B.list.length<=1 && B.wave<WAVES.length-1) setTimeout(nextWave,900);
+    else if(B.list.length===0 && B.wave===WAVES.length-1) setTimeout(finaleSequence,1400);
+  }
+}
+
+function nextWave(){
+  B.wave++;
+  const w=WAVES[B.wave]; if(!w) return;
+  B.pending+=w.length;
+  w.forEach((cfg,i)=>{
+    setTimeout(()=>{
+      B.pending--;
+      const occ=Layout.take({tall:!!cfg.tall});
+      spawn(cfg,{occ});
+    }, i*680+rand(0,240));
+  });
+}
+
+/* ===================== NOTES ===================== */
+const visible=[];
+function showNote(cfg,b,x,y){
+  const slot = (b && b.slot) || {x, y, cellW:Layout.noteW, lastRow:false};
+  const n=document.createElement("div");
+  n.className="note "+(cfg.kind==="heart"||cfg.kind==="dreams"?"heart":cfg.kind==="birthday"?"birthday":cfg.kind==="funny"?"funny":"");
+  n.style.maxWidth=Layout.noteW+"px";
+  n.innerHTML=cfg.msg.map(m=>`<span class="line">${m}</span>`).join("");
+  S.notes.appendChild(n);
+
+  const rot=rand(-2.4,2.4);
+  Layout.place(n,slot,!!cfg.tall);
+  n.style.transform=`scale(.95) translateY(8px) rotate(${rot}deg)`;
+  requestAnimationFrame(()=>{ n.classList.add("in"); n.style.transform=`scale(1) rotate(${rot}deg)`; });
+
+  Layout.convert(b && b.occ, n, cfg.tall);
+
+  const lines=n.querySelectorAll(".line");
+  const gap=cfg.kind==="dreams"?1300:90;
+  lines.forEach((l,i)=>setTimeout(()=>l.classList.add("in"),140+i*gap));
+  if(cfg.kind==="dreams"){
+    const r=n.getBoundingClientRect();
+    lines.forEach((l,i)=>setTimeout(()=>Confetti.burst(r.left+r.width/2,r.top+r.height*0.4,"heart"),200+i*gap));
+  }
+
+  visible.push(n);
+  visible.slice(0,-4).forEach(e=>e.classList.add("faded"));
+  if(!RM) n.animate([{translate:"0 0"},{translate:`${rand(-6,6)}px ${rand(-5,-1)}px`},{translate:"0 0"}],
+    {duration:rand(9,15)*1000,iterations:Infinity,easing:"ease-in-out"});
+}
+
+/* ===================== SEQUENCE ===================== */
+function beginCelebration(){
+  S.stage.classList.add("scene-on");
+  Music.start();
+  Confetti.setAmbient(true);
+  Confetti.rain(26);
+  Figure.setTravel(Math.min(100,Math.max(45,W*0.09)));
+  requestAnimationFrame(()=>{ Layout.build(); Figure.hearMusic(); setTimeout(nextWave,2600); });
+}
+
+function finaleSequence(){
+  S.stage.classList.add("dim");
+  Confetti.setAmbient(false); Confetti.clearSoon();
+  Figure.stop();
+  visible.forEach(e=>e.classList.add("faded"));
+  setTimeout(()=>{
+    const b=spawn({kind:"final",shape:"heart",color:"#6B4F43",big:true},
+      {homeX:W/2, homeY:H*0.36, startX:W/2});
+    b.rotV=0.03;
+    b.el.style.zIndex=8;
+    b.el.style.filter="drop-shadow(0 18px 34px rgba(58,41,33,.28))";
+    b.el.setAttribute("aria-label","One last balloon — pop it");
+    Sound.chime([392,523.25],0.03);
+  },1500);
+}
+
+function finalMessage(){
+  Confetti.burst(W/2,H*0.36,"final");
+  visible.forEach((e,i)=>setTimeout(()=>{ e.style.transition="opacity 1.6s ease"; e.style.opacity="0"; },i*70));
+  S.figure.style.opacity="0";
+  setTimeout(()=>{
+    S.final.classList.add("show");
+    const lines=S.final.querySelectorAll(".l");
+    lines.forEach((l,i)=>setTimeout(()=>l.classList.add("in"),400+i*1900));
+    setTimeout(ending,400+lines.length*1900+4200);
+  },900);
+}
+
+function ending(){
+  S.figure.style.opacity="1";
+  Figure.resume();
+  Confetti.rain(14);
+  const b=spawn({kind:"birthday",shape:"round",label:"22",color:COL.latte},
+    {homeX:W*0.5+rand(-70,70), homeY:-280, startX:W*0.5});
+  b.el.style.zIndex=8;
+  Sound.chime([523.25,659.25,783.99,1046.5],0.03);
+  setTimeout(()=>S.fade.classList.add("show"),7000);
+}
+
+/* ---------- opening ---------- */
+function openBalloon(){
+  const b=spawn({kind:"opening",shape:"round",color:COL.latte},
+    {homeX:W/2, homeY:H*0.46, startX:W/2});
+  b.el.style.zIndex=3;
+  b.el.setAttribute("aria-label","Pop the balloon to begin");
+  b.el.addEventListener("click",()=>{
+    S.found.classList.add("gone");
+    setTimeout(beginCelebration,300);
+  },{once:true});
+}
+
+let started=false;
+function startFound(){
+  if(started) return; started=true;
+  Sound.resume();
+  S.search.classList.add("gone");
+  setTimeout(()=>{ S.search.style.display="none"; S.foundtext.classList.add("show"); },700);
+  setTimeout(()=>{ Sound.chime([440,554.37],0.028); openBalloon(); },2100);
+  setTimeout(()=>{ S.foundtext.style.transition="opacity 1.4s ease, transform 1.4s ease";
+    S.foundtext.style.transform="translateY(-120px)"; S.foundtext.style.opacity=".5"; },3000);
+  Music.probe();
+}
+S.q.addEventListener("keydown",e=>{ if(e.key==="Enter"&&S.q.value.trim().length) startFound(); });
+setTimeout(()=>S.hint.classList.add("show"),3200);
+setTimeout(()=>{ try{ S.q.focus({preventScroll:true}); }catch(e){} },500);
+
+/* ---------- resize ---------- */
+let rt;
+addEventListener("resize",()=>{
+  W=innerWidth; H=innerHeight; Confetti.size();
+  clearTimeout(rt);
+  rt=setTimeout(()=>{
+    Figure.setTravel(Math.min(100,Math.max(45,W*0.09)));
+    Layout.build();
+    B.list.forEach(b=>{
+      if(b.occ && b.occ.slot){ b.slot=b.occ.slot; }
+      else { b.homeX=clamp(b.homeX,b.w*0.55,W-b.w*0.55); b.homeY=clamp(b.homeY,-300,H*0.75); }
+    });
+  },180);
+});
+})();
+</script>
+</body>
+</html>
