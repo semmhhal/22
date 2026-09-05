@@ -228,7 +228,7 @@ const Music = (function(){
   function fadeIn(){ let v=0; const id=setInterval(()=>{ v=Math.min(.55,v+0.02); el.volume=v; if(v>=.55) clearInterval(id); },70); }
   function load(src){ el.src=src; el.volume=0; ready=true; return el.play().then(()=>{fadeIn();paint();}).catch(paint); }
   function probe(){
-    const names=["song.mp3","music.mp3","something-just-like-this.mp3","song.m4a"]; let i=0;
+    const names=["song.mp3","music.mp3","something-just-like-this.mp3","song.mp3"]; let i=0;
     (function next(){
       if(i>=names.length){ tried=true; if(wanted) tip("Tap the note to add your song"); paint(); return; }
       const a=new Audio(); a.src=names[i];
